@@ -37,7 +37,14 @@ local internal_count_addr = save_context + 0x90
 -- check protocol version
 local script_protocol_version = 2
 local rom_protocol_version = mainmemory.read_u32_be(protocol_version_addr)
-if (rom_protocol_version ~= script_protocol_version) then
+if (rom_protocol_version == 1) then
+	incoming_player_addr  = 0
+	incoming_item_addr    = coop_context + 6
+	outgoing_key_addr     = coop_context + 8
+	outgoing_item_addr    = coop_context + 12
+	outgoing_player_addr  = coop_context + 14
+	player_names_addr     = coop_context + 16
+elseif (rom_protocol_version ~= script_protocol_version) then
 	setmetatable(_G, old_global_metatable)
 	error("This ROM is not compatible with this version of the co-op script\nScript protocol version: "..script_protocol_version.."\nROM protocol version: "..rom_protocol_version)
 end
@@ -58,7 +65,9 @@ local get_item = function(item)
 		return
 	end
 
-	mainmemory.write_u16_be(incoming_player_addr, item.t)
+	if (rom_protocol_version >= 2) then
+		mainmemory.write_u16_be(incoming_player_addr, item.t)
+	end
 	mainmemory.write_u16_be(incoming_item_addr, item.i) -- this is the actual item to give
 end
 
